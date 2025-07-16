@@ -1,56 +1,141 @@
+-- Set the leader key early
+vim.g.mapleader = ' '
+vim.g.maplocalleader = ' '
+
 --Options
 local options = {
 	bg = "light",
-  backup = false,                          -- creates a backup file
-  clipboard = "unnamedplus",               -- allows neovim to access the system clipboard
-  cmdheight = 2,                           -- more space in the neovim command line for displaying messages
-  completeopt = { "menuone", "noselect" }, -- mostly just for cmp
-  conceallevel = 0,                        -- so that `` is visible in markdown files
-  fileencoding = "utf-8",                  -- the encoding written to a file
-  hlsearch = true,                         -- highlight all matches on previous search pattern
-  ignorecase = true,                       -- ignore case in search patterns
-  pumheight = 10,                          -- pop up menu height
-  showmode = false,                        -- we don't need to see things like -- INSERT -- anymore
-  showtabline = 2,                         -- always show tabs
-  smartcase = true,                        -- smart case
-  smartindent = true,                      -- make indenting smarjer again
-  splitbelow = true,                       -- force all horizontal splits to go below current window
-  splitright = true,                       -- force all vertical splits to go to the right of current window
-  swapfile = false,                        -- creajes a swapfile
-  --termguicolors = true,                    -- set term gui colors (most terminals support this)
-  ttimeoutlen = 100,                       -- time to wait for a mapped sequence to complete (in milliseconds)
-  undofile = true,                         -- enable persistent undo
-  updatetime = 300,                        -- faster completion (4000ms default)
-  shiftwidth = 2,                          -- the number of spaces inserted for each indentation
-  tabstop = 2,                             -- insert 2 spaces for a tab
-  cursorline = false,                       -- highlight the current line
-  number = true,                           -- set numbered lines
-  relativenumber = false,                  -- set relative numbered lines
-  numberwidth = 4,                         -- set number column width to 2 {default 4}
-  signcolumn = "yes",                      -- always show the sign column, otherwise it would shift the text each time
-  wrap = false,                            -- display lines as one long line
-  scrolloff = 8,                           -- is one of my fav
-  sidescrolloff = 8,
-  --guifont = "monospace:h17",               -- the font used in graphical neovim applications
+	backup = false,
+	clipboard = "unnamedplus",
+	cmdheight = 2,
+	completeopt = { "menuone", "noselect" },
+	conceallevel = 0,
+	fileencoding = "utf-8",
+	hlsearch = true,
+	ignorecase = true,
+	pumheight = 10,
+	showmode = false,
+	showtabline = 2,
+	smartcase = true,
+	smartindent = true,
+	splitbelow = true,
+	splitright = true,
+	swapfile = false,
+	--termguicolors = true, -- uncomment if your terminal supports true colors
+	ttimeoutlen = 100,
+	undofile = true,
+	updatetime = 300,
+	shiftwidth = 2,
+	tabstop = 2,
+	cursorline = false,
+	number = true,
+	relativenumber = false,
+	numberwidth = 4,
+	signcolumn = "yes",
+	wrap = false,
+	scrolloff = 8,
+	sidescrolloff = 8,
+	--guifont = "monospace:h17",
 }
 
-
 for k, v in pairs(options) do
-  vim.opt[k] = v
+	vim.opt[k] = v
 end
 
 vim.cmd [[
 	try
-		colorscheme nord-vim 
+		colorscheme nord-vim
 	catch /^Vim\%((\a\+)\)\=:E185/
 		colorscheme default
 		set background=dark
 	endtry
 ]]
 
---Keys
-local opts = { noremap = true, silent = true }
-local term_opts = { silent = true }
-local keymap = vim.api.nvim_set_keymap
-keymap( "", "<SPACE>", "<Nop>", opts )
-keymap( "i", "jj", "<ESC>", opts )
+-- Keys
+local opts_noremap_silent = { noremap = true, silent = true }
+local term_opts_silent = { silent = true } -- Not used in this snippet but kept for context
+
+-- Set Space as <Nop>
+vim.keymap.set("", "<SPACE>", "<Nop>", opts_noremap_silent)
+-- Remap jj to Esc for insert mode
+vim.keymap.set("i", "jj", "<ESC>", opts_noremap_silent)
+
+-- NERDTree Mappings (Using vim.keymap.set)
+vim.keymap.set('n', '<leader>n', ':NERDTreeFocus<CR>', { desc = 'Focus NERDTree' })
+vim.keymap.set('n', '<C-n>', ':NERDTree<CR>', { desc = 'Open NERDTree' })
+vim.keymap.set('n', '<C-t>', ':NERDTreeToggle<CR>', { desc = 'Toggle NERDTree' })
+vim.keymap.set('n', '<C-f>', ':NERDTreeFind<CR>', { desc = 'Find current file in NERDTree' })
+
+-- Lazy.nvim Setup
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+	vim.fn.system({
+		"git",
+		"clone",
+		"--filter=blob:none",
+		"https://github.com/folke/lazy.nvim.git",
+		lazypath,
+	})
+end
+vim.opt.rtp:prepend(lazypath)
+
+-- Lazy.nvim Plugin Configuration
+require("lazy").setup({
+	'nvim-treesitter/nvim-treesitter',
+	{
+    'preservim/nerdtree',
+    cmd = 'NERDTreeToggle', -- Lazily load NERDTree when this command is called
+    config = function()
+      -- Your NERDTree keybindings go here
+      vim.keymap.set('n', '<leader>n', ':NERDTreeFocus<CR>', { desc = 'Focus NERDTree' })
+      vim.keymap.set('n', '<C-n>', ':NERDTree<CR>', { desc = 'Open NERDTree' })
+      vim.keymap.set('n', '<C-t>', ':NERDTreeToggle<CR>', { desc = 'Toggle NERDTree' })
+      vim.keymap.set('n', '<C-f>', ':NERDTreeFind<CR>', { desc = 'Find current file in NERDTree' })
+
+      -- Optional: Configure NERDTree settings here if you have any
+      -- vim.g.NERDTreeShowHidden = 1
+      -- vim.g.NERDTreeQuitOnOpen = 1
+    end,
+  },
+	{
+		'nvim-tree/nvim-web-devicons',
+		lazy = true, -- Only load when needed by other plugins
+	},
+	{
+		"folke/flash.nvim",
+		event = "VeryLazy",
+		opts = {}, -- Empty opts table if no specific global options are needed
+		config = function(_, opts)
+			require("flash").setup(opts)
+
+			-- Flash Mappings
+			vim.keymap.set({ "n", "x", "o" }, "s", function()
+				require("flash").jump()
+			end, { desc = "Flash Jump" })
+
+			vim.keymap.set({ "n", "x", "o" }, "S", function()
+				require("flash").treesitter()
+			end, { desc = "Flash Treesitter" })
+
+			vim.keymap.set("n", "r", function()
+				require("flash").remote()
+			end, { desc = "Flash Remote" })
+
+			vim.keymap.set({ "n", "x", "o" }, "f", function()
+				require("flash").jump({ pattern = "^.", first = true, fwd = true })
+			end, { remap = true, desc = "Flash Fwd Char" })
+
+			vim.keymap.set({ "n", "x", "o" }, "F", function()
+				require("flash").jump({ pattern = "^.", first = true, fwd = false })
+			end, { remap = true, desc = "Flash Bwd Char" })
+
+			vim.keymap.set({ "n", "x", "o" }, "t", function()
+				require("flash").jump({ pattern = "^.", first = true, till = true, fwd = true })
+			end, { remap = true, desc = "Flash Fwd Till Char" })
+
+			vim.keymap.set({ "n", "x", "o" }, "T", function()
+				require("flash").jump({ pattern = "^.", first = true, till = true, fwd = false })
+			end, { remap = true, desc = "Flash Bwd Till Char" })
+		end,
+	},
+})
